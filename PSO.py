@@ -12,10 +12,9 @@ class Swarm(object):
     '''
     Beore writing Von Neumann, we need to add a way to specify num of dimensions and make sure it doesn't impact the rest of the program.
     '''
-    def __init__(self, topology, particle_count, opt, iterations):
+    def __init__(self, topology, particle_count ,iterations):
         self.iterations = iterations
-        self.PARTICLE_COUNT = particle_count
-        self.eval = opt
+        
         self.topology = topology
         if self.topology != "n": #neumann #TODO: worry about later
             self.initialize_particles() #Dont do for Vneumann
@@ -25,45 +24,47 @@ class Swarm(object):
             self.initialize_particles_ring()
         if self.topology == "ra":  #random
             self.initialize_random(True)
-
+        self.clause_num = 0
+        self.DIMENSION_COUNT = 0
+        self.PARTICLE_COUNT = particle_count
+        self.clauses = []
         
-        self.iterate()
+        self.iterate() #Change to one iteration
         
-    #All 3 function evaluations are passed a particle and will either return fitness, assign it to the particle, or both 
-
-    #Rosenbrock working
-    #(1 to d-1) sum {100 * (x[i+1] - x[i]^2)^2 + (x[i] - 1)^2}
-    def rosenbrock(self, part):
-        totalFit = 0
-        for i in range(len(part.positions)-1):
-            totalFit += 100 * pow(part.positions[i+1] - part.positions[i]**2, 2.0) + pow(part.positions[i]-1.0,2)
-        return totalFit
-
-    #Ackley Working
-    def ackley(self, part): #Could use help checking if function is correct
-        firstVal = 0.0
-        secondVal = 0.0
-        for i in range(len(part.positions)):
-            firstVal += math.pow(part.positions[i], 2) #Calculates firstSum
-            secondVal += math.cos(2.0 *math.pi*part.positions[i]) #Calculates secondSum
-        finalFit = -20.0 * math.exp(-0.2 * math.sqrt(firstVal / len(part.positions))) - math.exp(secondVal / len(part.positions)) + 20.0 + math.e
-        return finalFit
     
-    #Rastrigin working, PSO gets amazing results
-    #(1 to d) sum {x[i]^2 - 10*Cos(2*n*x[i]) + 10}
-    def rastrigin(self, part):
-        totalFit = 0
-        for i in range(len(part.positions)):
-            totalFit += math.pow(part.positions[i],2) - 10*math.cos(2*math.pi*part.positions[i]) + 10
-        return totalFit
+    def readFile(self):
+        f = open(self.file_name, "r")
+        lines = f.readlines()
+        while lines[0][0] == 'c':   #Remove beginning comment lines in file
+            lines.remove(lines[0])
+        first_line = lines[0].split() #Obtaining number of vairables and clauses 
+        self.DIMENSION_COUNT = int(first_line[2])
+        self.clause_num = int(first_line[3])
+        lines.pop(0)
+        self.clauses = lines
 
-    #sphere working, but we should ask majercik about pmin,pmax,etc... in init_particles()-Line 80
-    def sphere(self, part):
-        sumSquares = 0
-        for i in range(len(part.positions)):
-            sumSquares += part.positions[i] ** 2
-        return sumSquares
+
+    """Function that takes an Individual solution and a given clause and checks
+    if the solution satifies the clause. Returns a boolean.
+    """
+    def check_score(self, solution, clause):
+        for literal in clause[:-1]: #Needs to ignore the 0 at the end of each clause
+            good_value = "1" if int(literal) > 0  else "0"  
+            if (solution.bitString[abs(int(literal)) - 1] != good_value):
+                return False
+        return True
+ 
+    """Given a set of problems and an Individual solution object, determines the fitness
+    score of that Individual. Returns the updated fitness score as an int.
+    """
+    def test_eval(self, lines, solution):
+        for line in lines:
+            literals_list = line.split()
+            if (self.check_score(solution, literals_list)):
+                solution.fitness += 1
+        return solution.fitness
     
+    #TODO:Delete init particles
     #sets positions and velocity bounds for each evaluation function
     def initialize_particles(self):
         self.particles = []
@@ -220,7 +221,8 @@ class Swarm(object):
                         neighborhood.append(self.particles[rand])
                         neighbor_counter += 1
                 self.particles[i].neighborhood = neighborhood
-        
+
+    #TODO: Delete, eval_func will be for both GA and PSO solutions
     #Calls evaluate func and only stores value when it is better than previous pBest of Particle
     def evaluate_particle(self,particle):
         if self.eval == "rok":
@@ -258,7 +260,7 @@ class Swarm(object):
         bestFit = math.inf  #Change to 0 if we want high values from eval function
         for particle in self.particles:
             self.evaluate_particle(particle) #find initial value and initial pBest for all particles       
-        for i in range(0, self.iterations):
+        for i in range(0, self.iterations): #Make only one iteration
             for particle in self.particles:
                 self.find_gBest(particle)#update gbest dynamically
                 #print(particle.nBestPos)
