@@ -34,7 +34,6 @@ def main():
         evap_fac = float(input())
 
     else:
-        file_name = str(sys.argv[1])
         system = str(sys.argv[2])
         num_ants = int(sys.argv[3])
         iterations = int(sys.argv[4])
@@ -43,7 +42,8 @@ def main():
         evap_fac = float(sys.argv[7])
         elitism_fac = float(sys.argv[8])
     """
-    driver = Driver("Testing")
+    file_name = str(sys.argv[1])
+    driver = Driver(file_name, 10)
     #everything here down should pretty much stay the same
     output = open("output.csv", "a")
     output.write("#" + file_name + "," + system + "," + str(num_ants) + "," + str(phero_influ) + "," + str(heuristic_influ) + "," + str(evap_fac))

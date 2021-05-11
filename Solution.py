@@ -1,8 +1,11 @@
-"""
-Stores a single solution, with methods for retrival and manipulation
-"""
+class Solution:
+    fitness = 0
+    bitString = ""
+    probability = 0
 
-class Solution(object):
+    def __init__(self, fitness, bitString):
+        self.fitness = fitness
+        self.bitString = bitString
 
-	def __init__(self, input):
-		print(input)
+    def setProb(self, newProbability):
+        self.probability = newProbability
