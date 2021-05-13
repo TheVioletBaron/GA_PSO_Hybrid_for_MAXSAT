@@ -16,10 +16,24 @@ class Solution:
         self.nBestFit = math.inf #Fitness of best solution in neighborhood
 
     #TODO: change to handle bitstrings
+    def modifiedUpdate(self): 
+        try:
+            for i in range(0, len(self.bitString)):
+                prob = random.uniform(0, 2.05)*math.abs(int(self.pBest[i]) - int(self.bitString[i])) + random.uniform(0, 2.05)*math.abs(int(self.nBest[i]) - int(self.bitString[i]))
+                if prob < 1.025:
+                    if self.bitString[i] == '1':
+                        self.bitString[i] = '0'
+                    else: self.bitString[i] = '1'
+
+        except IndexError:
+            print("Particle length incorrect")
+            exit()
+
+    #TODO: change to handle bitstrings
     def update(self): 
         try:
             for i in range(0, len(self.bitString)):
-                newVelocity = 0.7298 * (self.velocity[i] + random.uniform(0, 2.05)*(self.bestPos[i] - self.positions[i]) + random.uniform(0, 2.05)*(self.nBestPos[i] - self.positions[i]))
+                newVelocity = 0.7298 * (self.bitString[i] + random.uniform(0, 2.05)*(self.pBest[i] - self.bitString[i]) + random.uniform(0, 2.05)*(self.nBest[i] - self.bitString[i]))
                 self.velocity[i] = newVelocity
                 self.positions[i] += self.velocity[i]
         except IndexError:

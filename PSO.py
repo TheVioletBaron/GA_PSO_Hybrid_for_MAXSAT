@@ -29,27 +29,27 @@ class PSO(object):
     
     def initialize_particles_global(self):
         #assign entire swarm as neighborhood after all particles created
-        for i in range(0, self.PARTICLE_COUNT):
-            self.particles[i].neighborhood = self.particles
+        for i in range(0, len(self.pSolutions)):
+            self.pSolutions[i].neighborhood = self.particles
 
-    #TODO: redo for hybrid
     def initialize_particles_ring(self):
-        #assign entire swarm as neighborhood after all particles created
-        for i in range(0, self.PARTICLE_COUNT):
+        #Does normal ring to find indeces but takes particles from GA_solution list
+        for i in range(len(self.pSolutions)):
+            sol = self.pSolutions[i]
             neighborhood = []
             left = i - 1
             right = i + 1
 
             #wrap around array
-            if i == 0:
-                left = len(self.particles) - 1
-            if i == len(self.particles) - 1:
+            if i == 0: #won't need 
+                left = len(self.pSolutions) - 1
+            if i == len(self.pSolutions) - 1:
                 right = 0
 
-            neighborhood.append(self.particles[left]) 
-            neighborhood.append(self.particles[right]) 
-            neighborhood.append(self.particles[i]) 
-            self.particles[i].neighborhood = neighborhood
+            neighborhood.append(self.ga_solutions[left]) 
+            neighborhood.append(self.ga_solutions[right]) 
+            neighborhood.append(sol) 
+            sol.neighborhood = neighborhood
 
     def initialize_particles_houses(self):
         for i in range(len(self.psolutions)):
@@ -71,18 +71,18 @@ class PSO(object):
             solution.neighborhood.append(self.ga_Solutions[right])
             solution.neighborhood.append(self.ga_Solutions[i])
 
-    def initialize_von_neuman(self, pmin, pmax, vmin, vmax): #TODO
+    def initialize_von_neuman(self): 
         row_len = 0
         col_len = 0
-        if self.PARTICLE_COUNT == 16: #TODO: Worry about later
+        if self.PARTICLE_COUNT == 16: 
             col_len = 4
             row_len = 4
         elif self.PARTICLE_COUNT == 30:
             col_len = 5
             row_len = 6
-        elif self.PARTICLE_COUNT == 49:
-            col_len = 7
-            row_len = 7
+        elif self.PARTICLE_COUNT == 64:
+            col_len = 8
+            row_len = 8
         else:
             print("invalid swarm size for von Neumann")
             quit()
@@ -90,26 +90,21 @@ class PSO(object):
         row_counter = 0
         col_counter = 0
         particles_grid  = [[0]*col_len]*row_len
-        self.particles = []
-        for i in range(0, self.PARTICLE_COUNT):
-            positions = [] #randomly generate positions array
-            velocities = [] #randomly generate velocities array
-            
-            for j in range(0, self.DIMENSION_COUNT): #Based on values specified by eval func
-                randp = random.uniform(pmin, pmax)
-                positions.append(randp)
-                randv = random.uniform(vmin, vmax)
-                velocities.append(randv)
+        merged = []
+        for j in range(len(self.ga_solutions)):
+            merged.append(self.ga_solutions[j])
+            merged.append(self.pSolutions[j])
+        for i in range(0, len(merged)):
             try:
 
                 if row_counter < row_len:
-                    particles_grid[row_counter][col_counter] = Solution(0,velocities,positions)
+                    particles_grid[row_counter][col_counter] = merged[i]
                     #self.particles.append(Particle(0,velocities,positions))
                     row_counter += 1
                 else:
                     row_counter = 0
                     col_counter += 1
-                    particles_grid[row_counter][col_counter] = Solution(0,velocities,positions)
+                    particles_grid[row_counter][col_counter] = merged[i]
                     #self.particles.append(Particle(0,velocities,positions))
             except IndexError:
                 print("uh oh")
@@ -135,26 +130,24 @@ class PSO(object):
                     neighborhood = [particles_grid[left][j], particles_grid[right][j],
                         particles_grid[i][up], particles_grid[i][down], particles_grid[i][j]]
                     particles_grid[i][j].neighborhood = neighborhood
-                    self.particles.append(particles_grid[i][j])
 
                 except IndexError:
                     print("Aly's fault")
 
-    #TODO: re-do for hybrid
     def initialize_random(self, isSetup):
         num_neighbors = 10  #Setting neighborhood size to 10 for now, but maybe we should change this based on num particles? Good idea
-        for i in range (0, self.PARTICLE_COUNT):
-            if isSetup or random.uniform(0, 1) <= 0.2:
+        for i in range (0, len(self.pSolutions)):
+            if isSetup: #or random.uniform(0, 1) <= 0.2:
                 neighborhood = []
-                neighborhood.append(self.particles[i])
+                neighborhood.append(self.pSolutions[i])
                 neighbor_counter = 1
 
                 while neighbor_counter < num_neighbors:
-                    rand = randint(0, self.PARTICLE_COUNT-1)
+                    rand = randint(0, self.PARTICLE_COUNT)
                     if self.particles[rand] not in neighborhood:
                         neighborhood.append(self.particles[rand])
                         neighbor_counter += 1
-                self.particles[i].neighborhood = neighborhood
+                self.pSolutions[i].neighborhood = neighborhood
                 
     def find_gBest(self, solution):
         for sol in solution.neighborhood:
@@ -162,7 +155,7 @@ class PSO(object):
                 solution.nBestFit = sol.pBestFit
                 solution.nBest = sol.bitString.copy() #Adding copy() fixed all errors
 
-
+    #If we need to pass the lists of solutions
     def iterate(self):
          #Made only one iteration
         if self.topology == "gl": #global
@@ -176,4 +169,4 @@ class PSO(object):
 
         for solution in self.pSolutions:
             self.find_gBest(solution)#update gbest dynamically
-            solution.update()#update particle
+            solution.modifiedUpdate()#update particle
