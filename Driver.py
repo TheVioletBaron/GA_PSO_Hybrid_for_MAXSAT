@@ -1,6 +1,7 @@
 from PSO import PSO
 from GA import GA
 from Solution import Solution
+import random
 
 """
 The manager class. Stores solutions, calls GA and PSO, and
@@ -59,12 +60,12 @@ class Driver(object):
 	"""Given a set of problems and an Individual solution object, determines the fitness
 	score of that Individual. Returns the updated fitness score as an int.
 	"""
-	def test_eval(self, lines, solution):
-		for line in lines:
-			literals_list = line.split()
-			if (self.check_score(individual, literals_list)):
-				individual.fitness += 1
-		return individual.fitness
+	# def test_eval(self, lines, solution):
+	# 	for line in lines:
+	# 		literals_list = line.split()
+	# 		if (self.check_score(individual, literals_list)):
+	# 			individual.fitness += 1
+	# 	return individual.fitness
 
 	"""Helper to allow sorting of solutions based on their fitness values.
 	Takes an Individual object as an argument, returns that Individual's fitness
@@ -73,11 +74,11 @@ class Driver(object):
 	def rankSort(self, individual):
 		return individual.fitness
 
-
+	#TODO - re-evaluate fitness and update at the start of every iteration
 	def iterate(self):
 		new_solutions = ga.process(self.solution[0, math.floor(len(solutions)/2)])
 		new_solutions = pso.process(new_solutions)
-		new_solutions.append(pso.process(self.solution[math.floor(len(solutions)/2), :-1])
+		new_solutions.append(pso.process(self.solution[math.floor(len(solutions)/2), :-1]))
 		self.solutions = new_solutions.copy()
 		self.solutions.sort(key=self.rankSort)
 		return self.solutions[0]
