@@ -1,8 +1,15 @@
+from Solution import Solution
 from random import *
 import math
 import statistics
 
-class Swarm(object):
+class PSO(object):
+
+#change to handle bitstrings
+#Ring w/ house metaphor Neighborhhod
+#Optional re-assigning neighborhood
+#only pass back half of list
+
 
     DIMENSION_COUNT = 30
     PARTICLE_COUNT = 0
@@ -12,103 +19,20 @@ class Swarm(object):
     '''
     Beore writing Von Neumann, we need to add a way to specify num of dimensions and make sure it doesn't impact the rest of the program.
     '''
-    def __init__(self, topology, particle_count ,iterations):
-        self.iterations = iterations
-        
+    def __init__(self, topology , gaSolutions, pSolutions):
         self.topology = topology
-        if self.topology != "n": #neumann #TODO: worry about later
-            self.initialize_particles() #Dont do for Vneumann
-        if self.topology == "gl": #global
-            self.initialize_particles_global()
-        if self.topology == "ri": #ring
-            self.initialize_particles_ring()
-        if self.topology == "ra":  #random
-            self.initialize_random(True)
-        self.clause_num = 0
-        self.DIMENSION_COUNT = 0
-        self.PARTICLE_COUNT = particle_count
-        self.clauses = []
-        
-        self.iterate() #Change to one iteration
-        
+        self.DIMENSION_COUNT = len(gaSolutions[0]) #For now just getting num_clauses
+        self.PARTICLE_COUNT = len(gaSolutions) + len(pSolutions)
+        self.particles = gaSolutions + pSolutions
+        self.ga_solutions = gaSolutions
+        self.pSolutions = pSolutions
     
-    def readFile(self):
-        f = open(self.file_name, "r")
-        lines = f.readlines()
-        while lines[0][0] == 'c':   #Remove beginning comment lines in file
-            lines.remove(lines[0])
-        first_line = lines[0].split() #Obtaining number of vairables and clauses 
-        self.DIMENSION_COUNT = int(first_line[2])
-        self.clause_num = int(first_line[3])
-        lines.pop(0)
-        self.clauses = lines
-
-
-    """Function that takes an Individual solution and a given clause and checks
-    if the solution satifies the clause. Returns a boolean.
-    """
-    def check_score(self, solution, clause):
-        for literal in clause[:-1]: #Needs to ignore the 0 at the end of each clause
-            good_value = "1" if int(literal) > 0  else "0"  
-            if (solution.bitString[abs(int(literal)) - 1] != good_value):
-                return False
-        return True
- 
-    """Given a set of problems and an Individual solution object, determines the fitness
-    score of that Individual. Returns the updated fitness score as an int.
-    """
-    def test_eval(self, lines, solution):
-        for line in lines:
-            literals_list = line.split()
-            if (self.check_score(solution, literals_list)):
-                solution.fitness += 1
-        return solution.fitness
-    
-    #TODO:Delete init particles
-    #sets positions and velocity bounds for each evaluation function
-    def initialize_particles(self):
-        self.particles = []
-        if self.eval == "rok": #Rosenbrock
-            pmin = 15.0
-            pmax = 30.0
-            vmin = -2.0
-            vmax = 2.0
-        elif self.eval == "ack": #Ackley
-            pmin = 16.0
-            pmax = 32.0
-            vmin = -2.0
-            vmax = 4.0
-        elif self.eval == "sp": #Sphere, Ask Prof Maj what initial values should be
-            pmin = 15.56
-            pmax = 25.12
-            vmin = -2.0
-            vmax = 4.0
-        elif self.eval == "ras": #Rastrigin
-            pmin = 2.56
-            pmax = 5.12
-            vmin = -5.0
-            vmax = 4.0
-        else:
-            print("Argument Error: " + self.eval + " is not a function")
-            exit()
-        if self.topology == "vn":
-            self.initialize_von_neuman(pmin, pmax, vmin, vmax)
-        else:
-            for i in range(0, self.PARTICLE_COUNT):
-                positions = [] #randomly generate positions array
-                velocities = [] #randomly generate velocities array
-                for j in range(0, self.DIMENSION_COUNT): #Based on values specified by eval func
-                    randp = random.uniform(pmin, pmax)
-                    positions.append(randp)
-                    randv = random.uniform(vmin, vmax)
-                    velocities.append(randv)
-                self.particles.append(Particle(0,velocities,positions))
-        
     def initialize_particles_global(self):
         #assign entire swarm as neighborhood after all particles created
         for i in range(0, self.PARTICLE_COUNT):
             self.particles[i].neighborhood = self.particles
 
+    #TODO: redo for hybrid
     def initialize_particles_ring(self):
         #assign entire swarm as neighborhood after all particles created
         for i in range(0, self.PARTICLE_COUNT):
@@ -127,11 +51,30 @@ class Swarm(object):
             neighborhood.append(self.particles[i]) 
             self.particles[i].neighborhood = neighborhood
 
+    def initialize_particles_houses(self):
+        for i in range(len(self.psolutions)):
+            solution = self.pSolutions[i]
+            if i == 0:
+                left = -1
+                right = i + 1
+            elif i == range(len(self.psolutions))-1:
+                left = i - 1
+                right = 0
+            else:
+                left = i - 1
+                right = i +1
+            solution.neighborhood = []
+            solution.neighborhood.append(solution)
+            solution.neighborhood.append(self.pSolutions[left])
+            solution.neighborhood.append(self.pSolutions[right])
+            solution.neighborhood.append(self.ga_Solutions[left])
+            solution.neighborhood.append(self.ga_Solutions[right])
+            solution.neighborhood.append(self.ga_Solutions[i])
 
     def initialize_von_neuman(self, pmin, pmax, vmin, vmax): #TODO
         row_len = 0
         col_len = 0
-        if self.PARTICLE_COUNT == 16:
+        if self.PARTICLE_COUNT == 16: #TODO: Worry about later
             col_len = 4
             row_len = 4
         elif self.PARTICLE_COUNT == 30:
@@ -144,7 +87,6 @@ class Swarm(object):
             print("invalid swarm size for von Neumann")
             quit()
 
-        #initialize self.particles 2d array
         row_counter = 0
         col_counter = 0
         particles_grid  = [[0]*col_len]*row_len
@@ -161,26 +103,17 @@ class Swarm(object):
             try:
 
                 if row_counter < row_len:
-                    particles_grid[row_counter][col_counter] = Particle(0,velocities,positions)
+                    particles_grid[row_counter][col_counter] = Solution(0,velocities,positions)
                     #self.particles.append(Particle(0,velocities,positions))
                     row_counter += 1
                 else:
                     row_counter = 0
                     col_counter += 1
-                    particles_grid[row_counter][col_counter] = Particle(0,velocities,positions)
+                    particles_grid[row_counter][col_counter] = Solution(0,velocities,positions)
                     #self.particles.append(Particle(0,velocities,positions))
             except IndexError:
                 print("uh oh")
 
-        # #initialize random positions
-        # for i in range(0, self.PARTICLE_COUNT):
-        #     #randomly generate positions array
-        #     positions = []
-        #     for j in range(0, self.DIMENSION_COUNT):
-        #         rand = random.randrange(0, 100)
-        #         positions.append(rand)
-        
-        #assign neighborhoods
         for i in range(0, row_len):
             for j in range (0, col_len):
                 left = i - 1
@@ -207,6 +140,7 @@ class Swarm(object):
                 except IndexError:
                     print("Aly's fault")
 
+    #TODO: re-do for hybrid
     def initialize_random(self, isSetup):
         num_neighbors = 10  #Setting neighborhood size to 10 for now, but maybe we should change this based on num particles? Good idea
         for i in range (0, self.PARTICLE_COUNT):
@@ -221,57 +155,25 @@ class Swarm(object):
                         neighborhood.append(self.particles[rand])
                         neighbor_counter += 1
                 self.particles[i].neighborhood = neighborhood
-
-    #TODO: Delete, eval_func will be for both GA and PSO solutions
-    #Calls evaluate func and only stores value when it is better than previous pBest of Particle
-    def evaluate_particle(self,particle):
-        if self.eval == "rok":
-            score = self.rosenbrock(particle)
-            if score < particle.pbest:
-                particle.pbest = score
-                particle.bestPos = particle.positions
-        elif self.eval == "ack":
-            score = self.ackley(particle)
-            if score < particle.pbest:
-                particle.pbest = score
-                particle.bestPos = particle.positions
-        elif self.eval == "sp":
-            score = self.sphere(particle)
-            if score < particle.pbest:
-                particle.pbest = score
-                particle.bestPos = particle.positions
-        else: # when eval == "ras"
-            score = self.rastrigin(particle)
-            if score < particle.pbest: 
-                particle.pbest = score
-                particle.bestPos = particle.positions
-    
-    def find_gBest(self, particle):
-        for part in particle.neighborhood:
-            if part.pbest < particle.nBest: 
-                particle.nBest = part.pbest
-                particle.nBestPos = part.positions.copy() #Adding copy() fixed all errors
+                
+    def find_gBest(self, solution):
+        for sol in solution.neighborhood:
+            if sol.pBestFit < solution.nBestFit: 
+                solution.nBestFit = sol.pBestFit
+                solution.nBest = sol.bitString.copy() #Adding copy() fixed all errors
 
 
     def iterate(self):
-        output = open("output.csv", "a")
-        output.write("#" + self.topology + "," + str(self.PARTICLE_COUNT) + "," + self.eval + "," + str(self.iterations) + "\n")
-        bests = []
-        bestFit = math.inf  #Change to 0 if we want high values from eval function
-        for particle in self.particles:
-            self.evaluate_particle(particle) #find initial value and initial pBest for all particles       
-        for i in range(0, self.iterations): #Make only one iteration
-            for particle in self.particles:
-                self.find_gBest(particle)#update gbest dynamically
-                #print(particle.nBestPos)
-                particle.update()#update particle
-                self.evaluate_particle(particle) #update pbest
-                if particle.pbest < bestFit:  #Change to > if we want high values from eval function
-                    bestFit = particle.pbest
-                    
-            if self.topology == "ra":  #random, re-does neighborhoods, will need to do for ring and VN as well
-                self.initialize_random(False)
-            bests.append(bestFit)
-            if (i+1) % 1000 == 0:
-                    output.write(str(i) + "," + str(statistics.mean(bests)) + "," +str(statistics.median(bests)) + "\n") 
-        print("Program terminated with no errors")
+         #Made only one iteration
+        if self.topology == "gl": #global
+            self.initialize_particles_global()
+        if self.topology == "ri": #ring
+            self.initialize_particles_ring()
+        if self.topology == "ra": #random
+            self.initialize_random(True)
+        if self.topology == "houses":
+            self.initialize_particles_houses()
+
+        for solution in self.pSolutions:
+            self.find_gBest(solution)#update gbest dynamically
+            solution.update()#update particle
