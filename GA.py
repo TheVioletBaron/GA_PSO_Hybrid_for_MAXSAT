@@ -1,8 +1,8 @@
 import Solution
 
 """
-Authors: Aly Hummel and Jasper Gordon
-Date 28 March 2021
+Authors: Aly Hummel
+Date 12 May 2021
 Course: Nature Inspired Computation
 File Description: This file holds the GA class which takes in certain arguments (a file of MAXSAT problems 
 + a number of variables dictating the variable settings for running the GA algorithm on them). The class
@@ -15,22 +15,12 @@ import time
 
 class GA(object):
     
-    var_num = 0
-    clause_num = 0
     solution_list = []
 
-    """Initiializing function for the GA class. Takes in a MAXSAT filename and variables specifying
-    how to run a GA algorithim on it. Function is used to generate a GA object.
+    """Initiializing function for the GA class. Function is used to generate a GA object.
     """
-    def __init__(self, file_name, popSize, select, mut_prob, cross_prob, generations):
-        self.file_name = file_name
-        self.popSize = int(popSize)
-        self.select = select
-        self.cross_prob = float(cross_prob)
-        self.mut_prob = float(mut_prob)
-        self.generations = int(generations)
-        self.clauses = []
-        self.sum_of_ranks = 0
+    def __init__(self):
+        pass
     
     """Iterates through the Individual solutions and probabilistically mutates on a randomly
     selected bit in the Individual's bitstring.
@@ -63,18 +53,13 @@ class GA(object):
     size is achieved. Depending on the crossover method provided, makes a
     function call to aquire those two children to add.
     """    
-    def crossover(self, cross_method):
+    def crossover(self):
         new_breeding_pool = []
         new_pop = 0
-        while new_pop < self.popSize:
-            if cross_method == "u": #uniform crossover
-                child1, child2 = self.uniform_crossover()
-                new_breeding_pool.append(child1)
-                new_breeding_pool.append(child2)
-            else:   #1-point crossover
-                child1, child2 = self.one_point_crossover()
-                new_breeding_pool.append(child1)
-                new_breeding_pool.append(child2)
+        while new_pop < len(self.solution_list):
+            child1, child2 = self.one_point_crossover()
+            new_breeding_pool.append(child1)
+            new_breeding_pool.append(child2)
             new_pop += 2
         self.solution_list = new_breeding_pool
 
@@ -84,25 +69,22 @@ class GA(object):
     stated point). Returns two child Individual objects.
     """
     def one_point_crossover(self):
+        var_num = len(self.solution_list[0].bitString)
         parent1, parent2 = self.choose_parents()
         self.solution_list.remove(parent1)
         if parent1 != parent2:
             self.solution_list.remove(parent2)
-        crossover_point = random.randint(1, self.var_num - 2) #don't choose last or first positions
+        crossover_point = random.randint(1, var_num - 2) #don't choose last or first positions
         child1_string = parent1.bitString[0:crossover_point] + parent2.bitString[crossover_point:]
         child2_string = parent2.bitString[0:crossover_point] + parent1.bitString[crossover_point:]
         child1 = Solution(0, child1_string)
-        child1.fitness = self.test_eval(self.clauses, child1)
         child2 = Solution(0, child2_string)
-        child2.fitness = self.test_eval(self.clauses, child2)
         return child1, child2
 
     """Executes the crossove, and mutation calls on a GA object, returning the updated population. 
     """
     def process(self, solutions):
         self.solution_list = solutions
-        self.crossover(self.cross_method)
+        self.crossover()
         self.mutate()
         return self.solution_list
-
-
