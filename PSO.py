@@ -1,7 +1,6 @@
 from Solution import Solution
 from random import *
 import math
-import statistics
 
 class PSO(object):
 
@@ -19,13 +18,13 @@ class PSO(object):
     '''
     Beore writing Von Neumann, we need to add a way to specify num of dimensions and make sure it doesn't impact the rest of the program.
     '''
-    def __init__(self, topology , gaSolutions, pSolutions):
-        self.topology = topology
-        self.DIMENSION_COUNT = len(gaSolutions[0]) #For now just getting num_clauses
-        self.PARTICLE_COUNT = len(gaSolutions) + len(pSolutions)
-        self.particles = gaSolutions + pSolutions
-        self.ga_solutions = gaSolutions
-        self.pSolutions = pSolutions
+    def __init__(self):
+        self.topology = "topology"
+        self.DIMENSION_COUNT = 0#len(gaSolutions[0]) #For now just getting num_clauses
+        self.PARTICLE_COUNT = 0#len(gaSolutions) + len(pSolutions)
+        self.particles = []#gaSolutions + pSolutions
+        self.ga_solutions = []#gaSolutions
+        self.pSolutions = []#pSolutions
     
     def initialize_particles_global(self):
         #assign entire swarm as neighborhood after all particles created
@@ -42,8 +41,8 @@ class PSO(object):
 
             #wrap around array
             if i == 0: #won't need 
-                left = len(self.pSolutions) - 1
-            if i == len(self.pSolutions) - 1:
+                left =  -1
+            if right > len(self.pSolutions) - 1:
                 right = 0
 
             neighborhood.append(self.ga_solutions[left]) 
@@ -156,7 +155,13 @@ class PSO(object):
                 solution.nBest = sol.bitString.copy() #Adding copy() fixed all errors
 
     #If we need to pass the lists of solutions
-    def iterate(self):
+    def process(self, topology , gaSolutions, pSolutions):
+        self.topology = topology
+        #self.DIMENSION_COUNT = len(gaSolutions[0]) #For now just getting num_clauses
+        self.PARTICLE_COUNT = len(gaSolutions) + len(pSolutions)
+        self.particles = gaSolutions + pSolutions
+        self.ga_solutions = gaSolutions
+        self.pSolutions = pSolutions
          #Made only one iteration
         if self.topology == "gl": #global
             self.initialize_particles_global()
@@ -170,3 +175,4 @@ class PSO(object):
         for solution in self.pSolutions:
             self.find_gBest(solution)#update gbest dynamically
             solution.modifiedUpdate()#update particle
+        return self.pSolutions

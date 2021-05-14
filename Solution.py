@@ -8,12 +8,12 @@ class Solution:
         self.bitString = bitString
 	    #BestFits for all solutions will be updated every iter in case a GA solution gets put in the PSO group
         self.fitness = 0 #Current fitness
-        self.pBestFit = math.inf #best value Particle has received from eval func
+        self.pBestFit = 0 #best value Particle has received from eval func
         self.pBest = "" #Holds solution list of best solution found by particle
 	    #Variables below will only be used when a solution is in PSO group
         self.neighborhood = [] #List of all solutions in neighborhood
         self.nBest = "" #Holds solution vector of best solution in neighborhood
-        self.nBestFit = math.inf #Fitness of best solution in neighborhood
+        self.nBestFit = 0 #Fitness of best solution in neighborhood
 
     #TODO: change to handle bitstrings
     def modifiedUpdate(self): 
