@@ -1,4 +1,4 @@
-import Solution
+from Solution import Solution
 
 """
 Authors: Aly Hummel
@@ -16,6 +16,7 @@ import time
 class GA(object):
     
     solution_list = []
+    mut_prob = 0.01 #hard coded for now
 
     """Initiializing function for the GA class. Function is used to generate a GA object.
     """
