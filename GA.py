@@ -57,11 +57,15 @@ class GA(object):
     def crossover(self):
         new_breeding_pool = []
         new_pop = 0
-        while new_pop < len(self.solution_list):
+        total_pop = len(self.solution_list)
+        while new_pop < total_pop:
             child1, child2 = self.one_point_crossover()
             new_breeding_pool.append(child1)
-            new_breeding_pool.append(child2)
-            new_pop += 2
+            if total_pop - new_pop != 1:
+                new_breeding_pool.append(child2)
+                new_pop += 2
+            else:
+                new_pop += 1
         self.solution_list = new_breeding_pool
 
     """Performs one-point crossover, choosing two parents, randomly selecting a crossover
