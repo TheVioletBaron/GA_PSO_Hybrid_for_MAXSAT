@@ -150,9 +150,9 @@ class PSO(object):
                 
     def find_gBest(self, solution):
         for sol in solution.neighborhood:
-            if sol.pBestFit < solution.nBestFit: 
+            if sol.pBestFit > solution.nBestFit: 
                 solution.nBestFit = sol.pBestFit
-                solution.nBest = sol.bitString.copy() #Adding copy() fixed all errors
+                solution.nBest = sol.bitString #Adding copy() fixed all errors
 
     #If we need to pass the lists of solutions
     def process(self, topology , gaSolutions, pSolutions):

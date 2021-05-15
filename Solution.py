@@ -14,16 +14,22 @@ class Solution:
         self.neighborhood = [] #List of all solutions in neighborhood
         self.nBest = "" #Holds solution vector of best solution in neighborhood
         self.nBestFit = 0 #Fitness of best solution in neighborhood
+        self.positions = []
 
     #TODO: change to handle bitstrings
     def modifiedUpdate(self): 
         try:
             for i in range(0, len(self.bitString)):
-                prob = random.uniform(0, 2.05)*math.abs(int(self.pBest[i]) - int(self.bitString[i])) + random.uniform(0, 2.05)*math.abs(int(self.nBest[i]) - int(self.bitString[i]))
+                p1 = random.uniform(0, 2.05)
+                p2 = abs(int(self.pBest[i]) - int(self.bitString[i]))
+                p3 = random.uniform(0, 2.05)
+                p4 = abs(int(self.nBest[i]) - int(self.bitString[i]))
+                prob = p1*p2 + p3*p4
+                #prob = random.uniform(0, 2.05)*abs(int(self.pBest[i]) - int(self.bitString[i])) + random.uniform(0, 2.05)*abs(int(self.nBest[i]) - int(self.bitString[i]))
                 if prob < 1.025:
                     if self.bitString[i] == '1':
-                        self.bitString[i] = '0'
-                    else: self.bitString[i] = '1'
+                        self.bitString = self.bitString[:i] + '0' + self.bitString[i+1:]
+                    else: self.bitString[:i] + '1' + self.bitString[i+1:] 
 
         except IndexError:
             print("Particle length incorrect")
