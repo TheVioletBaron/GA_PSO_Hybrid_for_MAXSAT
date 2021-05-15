@@ -28,7 +28,7 @@ class Driver(object):
 
 	def __init__(self, file_name, pop_size):
 		self.readFile(file_name)
-		solutions = self.generateSolutions(pop_size)
+		solutions = self.generate_solutions(pop_size)
 		self.solutions.sort(key=self.rankSort)
 
 	"""Function handle file reading on the MAXSAT problem, handling the first comment lines
@@ -60,12 +60,12 @@ class Driver(object):
 	"""Given a set of problems and an Individual solution object, determines the fitness
 	score of that Individual. Returns the updated fitness score as an int.
 	"""
-	# def test_eval(self, lines, solution):
-	# 	for line in lines:
-	# 		literals_list = line.split()
-	# 		if (self.check_score(individual, literals_list)):
-	# 			individual.fitness += 1
-	# 	return individual.fitness
+	def test_eval(self, lines, solution):
+		for line in lines:
+			literals_list = line.split()
+			if (self.check_score(solution, literals_list)):
+				solution.fitness += 1
+		return solution.fitness
 
 	"""Helper to allow sorting of solutions based on their fitness values.
 	Takes an Individual object as an argument, returns that Individual's fitness
