@@ -171,6 +171,8 @@ class PSO(object):
             self.initialize_random(True)
         if self.topology == "houses":
             self.initialize_particles_houses()
+        if self.topology == "vn":
+            self.initialize_von_neuman
 
         for solution in self.pSolutions:
             self.find_gBest(solution)#update gbest dynamically

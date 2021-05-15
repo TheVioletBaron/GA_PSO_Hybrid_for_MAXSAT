@@ -32,11 +32,13 @@ class Driver(object):
 			self.test_eval(self.clauses, solution)
 
 	def __init__(self, file_name, pop_size, topology, selection_method):
+		self.bestFit = 0
 		self.topology = topology
 		self.selection_method = selection_method
 		self.readFile(file_name)
 		solutions = self.generate_solutions(pop_size)
 		self.solutions.sort(key=self.rankSort)
+		
 
 	"""Function handle file reading on the MAXSAT problem, handling the first comment lines
 	before obtaining the number of variables, clauses, and finally grabbing the clauses
@@ -60,9 +62,9 @@ class Driver(object):
 	def check_score(self, solution, clause):
 		for literal in clause[:-1]: #Needs to ignore the 0 at the end of each clause
 			good_value = "1" if int(literal) > 0  else "0"
-			if (solution.bitString[abs(int(literal)) - 1] != good_value):
-				return False
-			return True
+			if (solution.bitString[abs(int(literal)) - 1] == good_value):
+				return True
+		return False
 
 	"""Given a set of problems and an Individual solution object, determines the fitness
 	score of that Individual. Returns the updated fitness score as an int.
@@ -76,6 +78,8 @@ class Driver(object):
 		if solution.pBestFit < solution.fitness:
 			solution.pBestFit = solution.fitness
 			solution.pBest = solution.bitString
+		if solution.fitness  > self.bestFit:
+			self.bestFit = solution.fitness
 		return solution.fitness
 
 	"""Helper to allow sorting of solutions based on their fitness values.
@@ -185,7 +189,7 @@ class Driver(object):
 		# else, use indexing
 		# TODO updating pBest here using test_eval, no idea if we want to keep doing this
 		if self.selection_method == "r":
-			pso_output = self.pso.process(self.topology, new_solutions, self.solutions[math.floor(len(self.solutions)/2):-1])
+			pso_output = self.pso.process(self.topology, new_solutions, self.solutions[math.floor(len(self.solutions)/2):])
 			#new_solutions.append(self.pso.process(self.topology, new_solutions, self.solutions[math.floor(len(self.solutions)/2):-1]))
 		else:
 			pso_output = self.pso.process(self.topology, new_solutions, self.solutions)
@@ -217,7 +221,3 @@ class Driver(object):
 			if sol.fitness > max_solution.fitness:
 				max_solution = sol
 		return max_solution
-
-#for testing
-driver = Driver("s2v100c1400-1.cnf", 15, "gl", "r")
-driver.proccess()

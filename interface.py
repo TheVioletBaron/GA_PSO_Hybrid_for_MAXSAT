@@ -11,7 +11,7 @@ def main():
     file_name = ""
     system = ""
     num_ants = 0
-    iterations = 0
+    iterations = 1000
     phero_influ = 0
     heuristic_influ = 0
     evap_fac = 0
@@ -43,17 +43,12 @@ def main():
         elitism_fac = float(sys.argv[8])
     """
     file_name = str(sys.argv[1])
-    driver = Driver(file_name, 10)
+    driver = Driver(file_name, 16, "vn", "b")
     #everything here down should pretty much stay the same
-    output = open("output.csv", "a")
-    output.write("#" + file_name + "," + system + "," + str(num_ants) + "," + str(phero_influ) + "," + str(heuristic_influ) + "," + str(evap_fac))
-    start = time.time()
     for iteration in range(iterations):
-        print(iteration)
-        output.write(str(iteration) + "," + str(time.time() - start) + "," + str(colony.iterate()) +"\n")
-        if (time.time() - start) > 300:
-            print("Timed out")
-            break
+        driver.iterate()
+        if iteration % 50 == 0:
+            print("Iteration: "+str(iteration)+" Best Fit: "+str(driver.bestFit))
 
 if __name__ == '__main__':
     main()
