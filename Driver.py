@@ -68,10 +68,14 @@ class Driver(object):
 	score of that Individual. Returns the updated fitness score as an int.
 	"""
 	def test_eval(self, lines, solution):
+		solution.fitness = 0
 		for line in lines:
 			literals_list = line.split()
 			if (self.check_score(solution, literals_list)):
 				solution.fitness += 1
+		if solution.pBestFit < solution.fitness:
+			solution.pBestFit = solution.fitness
+			solution.pBest = solution.bitString
 		return solution.fitness
 
 	"""Helper to allow sorting of solutions based on their fitness values.
@@ -80,11 +84,11 @@ class Driver(object):
 	"""
 	def rankSort(self, individual):
 		return individual.fitness
-	
+
 	#all of the following are GA selection methods
 	#they will select the half of the population that will go through GA processing
 	#all remove GA pop from self.solutions and return GA pop in a separate list
-	
+
 	"""Function that executes rank selection on the pool of solutions by first ranking
     them by their fitness scores, and then selecting based on rank-based probailities
     until a pool equal in size to the original population has been made.
@@ -107,7 +111,7 @@ class Driver(object):
 			self.solutions[i].probability = math.exp(self.solutions[i].fitness/100) / self.sum_of_ranks
 			self.total_probability += self.solutions[i].probability
 		return self.select_breeding_pool()
-    
+
 	"""Executes exponential rank selection, calculating an indvidual's probability of
     being selected by taking e to the power of the individual's rank, and dividing
     that by the sum of e to the power of all the Inviduals' ranks. Calls method to
@@ -131,7 +135,7 @@ class Driver(object):
 		half_pop = len(self.solutions) / 2
 		selected = []
 		while total_selected < half_pop:
-			rand = random.uniform(0, self.total_probability) 
+			rand = random.uniform(0, self.total_probability)
 			selected_ind = self.get_selected_individual(rand)
 			selected.append(self.solutions[selected_ind])
 			self.total_probability -= self.solutions[selected_ind].probability
@@ -171,18 +175,24 @@ class Driver(object):
 				self.sum_of_ranks += math.exp(i)
 			ga_pop = self.exponential_rank_selection()
 		if self.selection_method =="r":
-			self.solutions.sort(key=self.rankSort) 
+			self.solutions.sort(key=self.rankSort)
 			ga_pop = self.solutions[0:math.floor(len(self.solutions)/2)]
-		
+
 		new_solutions = self.ga.process(ga_pop)
-		
+
 		#new_solutions = self.pso.process(new_solutions)
 		#if used GA selection method, use separate pop lists
 		# else, use indexing
+		# TODO updating pBest here using test_eval, no idea if we want to keep doing this
 		if self.selection_method == "r":
-			new_solutions.append(self.pso.process(self.topology, new_solutions, self.solutions[math.floor(len(self.solutions)/2):-1]))
+			pso_output = self.pso.process(self.topology, new_solutions, self.solutions[math.floor(len(self.solutions)/2):-1])
+			#new_solutions.append(self.pso.process(self.topology, new_solutions, self.solutions[math.floor(len(self.solutions)/2):-1]))
 		else:
-			new_solutions.append(self.pso.process(self.topology, new_solutions, self.solutions))
+			pso_output = self.pso.process(self.topology, new_solutions, self.solutions)
+		
+		new_solutions += pso_output
+		
+			#new_solutions.append(self.pso.process(self.topology, new_solutions, self.solutions))
 		# new_solutions.append(self.pso.process(self.topology, new_solutions, self.solutions[math.floor(len(self.solutions)/2):-1]))
 		self.solutions = new_solutions.copy()
 
@@ -190,15 +200,24 @@ class Driver(object):
 		for solution in self.solutions:
 			self.test_eval(self.clauses, solution)
 
-		# self.solutions.sort(key=self.rankSort) 
+		# self.solutions.sort(key=self.rankSort)
 		# return self.solutions[0]
-	
+
 	def proccess(self):
+		print(self.get_best().fitness)
 		ITERATIONS = 5 #hard coded for now
-		correct_bit_len = len(self.solutions[0].bitString)
 		for i in range(0, ITERATIONS):
 			self.iterate()
+			print(self.get_best().fitness)
+
+	
+	def get_best(self):
+		max_solution = self.solutions[0]
+		for sol in self.solutions:
+			if sol.fitness > max_solution.fitness:
+				max_solution = sol
+		return max_solution
 
 #for testing
-# driver = Driver("s2v100c1400-1.cnf", 15, "gl", "r")
-# driver.proccess()
+driver = Driver("s2v100c1400-1.cnf", 15, "gl", "r")
+driver.proccess()
