@@ -199,7 +199,7 @@ class Driver(object):
 		
 			#new_solutions.append(self.pso.process(self.topology, new_solutions, self.solutions))
 		# new_solutions.append(self.pso.process(self.topology, new_solutions, self.solutions[math.floor(len(self.solutions)/2):-1]))
-		self.solutions = new_solutions.copy()
+		self.solutions = new_solutions[:]
 
 		#fitness evaluation
 		for solution in self.solutions:

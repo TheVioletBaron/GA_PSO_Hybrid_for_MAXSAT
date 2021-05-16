@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Testing for GA-PSO Hybrid
-filename = "HG-3SAT-V250-C1000-7.cnf"
+#filename = "HG-3SAT-V250-C1000-7.cnf"
 #baseline selection method: b
 #baseline topology: ri
 #baseline mut prob: 0.25
@@ -11,7 +11,7 @@ for top in "gl" "ri" "vn" "ra" "houses"
 do
     for pop in 16 30 64 
     do
-        python3 driver.py ${filename} ${pop} ${top} "b" 0.25
+        python3 interface.py HG-3SAT-V250-C1000-7.cnf ${pop} ${top} "b" 0.25
     done
 done
 
@@ -20,7 +20,7 @@ for selection in "b" "rs" "er" "r" #selection methods
 do
     for pop in 16 30 64 
     do
-        python3 driver.py ${filename} ${pop} "ri" ${selection} 0.25
+        python3 interface.py HG-3SAT-V250-C1000-7.cnf ${pop} "ri" ${selection} 0.25
     done
 done
 
@@ -29,6 +29,6 @@ for prob in 0.01 0.1 0.25 0.5 #mut prob
 do
     for pop in 16 30 64 
     do
-        python3 driver.py ${filename} ${pop} "ri" "b" ${prob}
+        python3 interface.py HG-3SAT-V250-C1000-7.cnf ${pop} "ri" "b" ${prob}
     done
 done
