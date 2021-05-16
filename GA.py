@@ -20,8 +20,8 @@ class GA(object):
 
     """Initiializing function for the GA class. Function is used to generate a GA object.
     """
-    def __init__(self):
-        pass
+    def __init__(self, mut_prob):
+        self.mut_prob
     
     """Iterates through the Individual solutions and probabilistically mutates on a randomly
     selected bit in the Individual's bitstring.

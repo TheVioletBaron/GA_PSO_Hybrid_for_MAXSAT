@@ -11,12 +11,12 @@ def main():
     file_name = ""
     system = ""
     num_ants = 0
-    iterations = 1000
+    iterations = 10000
     phero_influ = 0
     heuristic_influ = 0
     evap_fac = 0
     elitism_fac = 0
-    """
+    
     if len(sys.argv) == 1:
         print ("Please select a file")
         file_name = str(input())
@@ -34,21 +34,27 @@ def main():
         evap_fac = float(input())
 
     else:
-        system = str(sys.argv[2])
-        num_ants = int(sys.argv[3])
-        iterations = int(sys.argv[4])
-        phero_influ = float(sys.argv[5])
-        heuristic_influ = float(sys.argv[6])
-        evap_fac = float(sys.argv[7])
-        elitism_fac = float(sys.argv[8])
-    """
-    file_name = str(sys.argv[1])
-    driver = Driver(file_name, 16, "vn", "b")
-    #everything here down should pretty much stay the same
+        file_name = str(sys.argv[1])
+        populaion = int(sys.argv[2])
+        topology = str(sys.argv[3])
+        selection_method = str(sys.argv[4])
+        mut_prob = float(sys.argv[5])
+
+    driver = Driver(file_name, populaion, topology, selection_method, mut_prob)
+
+    output = open("output.csv", "a")
+    output.write("#" + file_name + "," + str(populaion) + "," + str(topology) + "," + str(phero_influ) + "," + str(selection_method) + "," + str(mut_prob))
+    start = time.time()
     for iteration in range(iterations):
         driver.iterate()
         if iteration % 50 == 0:
-            print("Iteration: "+str(iteration)+" Best Fit: "+str(driver.bestFit))
+            print(driver.bestFit)
+            output.write(str(iteration) + "," + str(time.time() - start) + "," + str(driver.bestFit) +"\n")
+        if (time.time() - start) > 300:
+            print("Timed out")
+            output.write("Timed Out")
+            break
+
 
 if __name__ == '__main__':
     main()

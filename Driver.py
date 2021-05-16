@@ -13,7 +13,7 @@ class Driver(object):
 
 	solutions = []
 	clauses = []
-	ga = GA()
+	#ga = GA()
 	pso = PSO()
 
 	#for GA selection methods
@@ -31,7 +31,8 @@ class Driver(object):
 		for solution in self.solutions:
 			self.test_eval(self.clauses, solution)
 
-	def __init__(self, file_name, pop_size, topology, selection_method):
+	def __init__(self, file_name, pop_size, topology, selection_method, mut_prob):
+		self.ga = GA(mut_prob)
 		self.bestFit = 0
 		self.topology = topology
 		self.selection_method = selection_method
